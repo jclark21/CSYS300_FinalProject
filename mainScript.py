@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov 13 13:12:36 2020
+Justin Clark
+CSYS 300
+Final Project
+mainScitpy.py
 
-@author: jclar
+Data Proprocessing...
 """
 
 

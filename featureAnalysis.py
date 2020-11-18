@@ -1,8 +1,10 @@
-# -*- coding: utf-8 -*-
 """
-Created on Wed Nov 18 13:31:20 2020
+Justin Clark
+CSYS 300
+Final Project
+featureAnalysis.py
 
-@author: jclar
+Exploratory Data Analysis
 """
 
 import spotipy
@@ -46,3 +48,5 @@ list_artists = artist_grouped_df.index.values.tolist()
 plt.scatter(artist_grouped_df['valence'],artist_grouped_df['popularity'])
 for i,text in enumerate(list_artists):
     plt.annotate(text,(artist_grouped_df['valence'][i],artist_grouped_df['popularity'][i]))
+    
+#artis = merged_df.groupby(['artist']).sum()

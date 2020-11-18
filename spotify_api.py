@@ -1,8 +1,11 @@
-# -*- coding: utf-8 -*-
 """
 Justin Clark
 CSYS 300
+Final Project
+spotify_api.py
 
+Create dataframes based on user chosen Spotfy Playlists and
+save to .csv file for later retrieval
 """
 
 ####################
@@ -22,6 +25,15 @@ import matplotlib.pyplot as plt
 ################################
 
 def analyze_playlist(creator, playlist_id):
+    """
+    Create dataframe of song information for given spotify playlist
+    Arguments:
+        creator: string of creator id
+        playlist_id: string of playlist id
+    Return
+        playlist_df: dataframe of songs/variables of interest for given playlist
+    
+    """
     
     # Create empty dataframe
     playlist_features_list = ["artist","album","track_name",  "track_id","popularity","danceability","energy","key","loudness","mode", "speechiness","instrumentalness","liveness","valence","tempo", "duration_ms","time_signature"]
@@ -60,6 +72,8 @@ def createYearlyDataFrames(dictionary):
             key = String of Year
             value[0] = Creator ID
             value[1] = Playlist ID
+    Return:
+        none
     """
     for key in dictionary:
         year = key
