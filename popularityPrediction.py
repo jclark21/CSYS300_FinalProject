@@ -52,7 +52,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.feature_selection import SelectFromModel
 from sklearn.neural_network import MLPRegressor
 
-data = pd.read_csv("merged_df.csv")
+data = pd.read_csv("final_merged_df.csv")
 rows = data.shape[0]
 cols = data.shape[1]
 target_index = data.columns.get_loc("popularity")

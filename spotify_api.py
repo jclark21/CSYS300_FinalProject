@@ -77,10 +77,11 @@ def createYearlyDataFrames(dictionary):
     """
     for key in dictionary:
         year = key
+        print("Year: {}".format(year))
         creator = dictionary[key][0]
         playlist_id = dictionary[key][1]
         df = analyze_playlist(creator,playlist_id)
-        df.to_csv("df_{}.csv".format(year),index = False)
+        df.to_csv("rap_df_{}.csv".format(year),index = False)
         
 
 ################################
@@ -102,7 +103,12 @@ sentim_analyzer = SentimentAnalyzer()
 dictionary_of_playlists = {
         "2019":['AT MusicPedia','1YEm3mSbOeDnoftDjSkcYz'],
         "2018":["DomSki",'6SWqTtjpGxmWW8eDwWQDuH'],
-        "2017":["boardboymusicworldwide",'7LJTmZfNGAg8lsbiFVsNSx']
+        "2017":["boardboymusicworldwide",'7LJTmZfNGAg8lsbiFVsNSx'],
+        "2016":["dflanzer","28UZeYxXikNMM8M0mZqvfR"],
+        "2015":["dflanzer","6hELk7zwzw2U9YQFbJ8NYL"],
+        "2014":["dflanzer","5jmWFprGlGbMBFM70iuv1Q"],
+        "2013":["dflanzer","5e5no0Qlmtv8NtmdYbqEah"],
+        "2012":["dflanzer","66FkqVJ6bd396zxk7Vd5LD"]
         }
 
 createYearlyDataFrames(dictionary_of_playlists)

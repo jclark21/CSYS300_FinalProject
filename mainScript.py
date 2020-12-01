@@ -24,11 +24,50 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import matplotlib.pyplot as plt
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
+from num2words import num2words
+from langdetect import detect 
+
 
 #from spotify_api import tokenizeLyrics,sentimentAnalysis
-
-
-
+stop_words = stopwords.words()
+ps = PorterStemmer()
+def preProcessData(genius,artist_name,track_name,stop_words):
+    symbols = "!,\"#$%&()*+-./:;<=>?@[\]^_`{|}~"#\n"
+    lyrics_string = genius.search_song(track_name,artist_name).lyrics
+    lyrics = re.sub(r'[\(\[].*?[\)\]]', '', lyrics_string)
+    lyrics = lyrics.lower()
+    #return lyrics
+    words = lyrics.split (' ')
+    newtst = ''
+    for word in words:
+        if word not in stop_words:
+            newtst = newtst+ " "+  word
+    #return newtst
+    for i in symbols:
+        newtst = newtst.replace(i,'')
+    newtst.replace("'","")
+    #return newtst
+    lines = newtst.split('\n')
+    #return lines
+    words = newtst.replace('\n',' ').split(' ')
+    #return words
+    #wordz = newtst.split(" ")
+    #return wordz
+    #final_lyrics = ''
+    for word in words:
+        if len(word) <= 1:
+            words.remove(word)
+    for line in lines:
+        if len(line) <= 1:
+            lines.remove(line)
+    return lines,words
+    #return final_lyrics
+#    line_split = final_lyrics.split('\n')
+    #return line_split
+    #words = word_tokenize(line_split)
+    #stem_words = [ps.stem(w) for w in words]
+    #r#eturn words,stem_words
 def tokenizeLyrics(genius,artist_name,track_name):
     """
     Tokenize Lyrics of song
@@ -40,8 +79,6 @@ def tokenizeLyrics(genius,artist_name,track_name):
     Return:
         line_split_lyrics:
         word_frequency
-    
-    
     """
     #Initialize tokenizer
     tknzr = nltk.TweetTokenizer()
@@ -56,8 +93,6 @@ def tokenizeLyrics(genius,artist_name,track_name):
     print(tokens_without_sw)
     word_frequency = Counter(tokens_without_sw)
     return linesplit_lyrics,word_frequency
-    
-    
 def sentimentAnalysis(line_split_lyrics,artist,song):
     """"
     Analysis sentiment of single song, calculting
@@ -68,29 +103,40 @@ def sentimentAnalysis(line_split_lyrics,artist,song):
         artist:
         song:
     Return:
-    
-    
-    
     """
     comp_list = []
+    numberOfLines = 0
+    numberPosLines = 0
+    numberNeuLines = 0
+    numberNegLines = 0
     sid = SentimentIntensityAnalyzer()
     while '' in line_split_lyrics:
         line_split_lyrics.remove('')
     for line in line_split_lyrics:
-        print(line)
+        numberOfLines += 1
         ss = sid.polarity_scores(line)
+        if ss > 0:
+            numberPosLines += 1
+        elif ss == 0:
+            numberNeuLines +=1
+        elif ss < 0:
+            numberNegLines += 1 
         comp_list.append(ss['compound'])
         #pos_list.append(ss[])
         #for k in sorted(ss):
          #print('{0}: {1}, '.format(k, ss[k]), end='')
          #print()
          #
-    plt.plot(comp_list)
-    plt.xlabel('Line Number')
-    plt.ylabel('Compound Polarity Score')
-    plt.title('{} by {}'.format(artist,song))
-    plt.show()
-    return comp_list
+#    plt.plot(comp_list)
+#    plt.xlabel('Line Number')
+#    plt.ylabel('Compound Polarity Score')
+#    plt.title('{} by {}'.format(artist,song))
+#    plt.show()
+    avgSentiment = np.average(comp_list)
+    proportionPositive = numberPosLines/numberOfLines
+    proportionNeutral = numberNeuLines/numberOfLines
+    proportionNegative = numberNegLines/numberOfLines
+    return avgSentiment,proportionPositive,proportionNeutral,proportionNegative
 
 def calculateTotalFreq(df):
     """
@@ -128,33 +174,51 @@ sentim_analyzer = SentimentAnalyzer()
 ####################################
 
 
-df_2019 = pd.read_csv("df_2019.csv")
-df_2019 = df_2019.drop(index = 1)
+df_2019 = pd.read_csv("rap_df_2019.csv")
 addYearCol(df_2019,2019)
 df_2018 = pd.read_csv("df_2018.csv")
 addYearCol(df_2018,2018)
 df_2017 = pd.read_csv("df_2017.csv")
 addYearCol(df_2017,2017)
+df_2016 = pd.read_csv("rap_df_2016.csv")
+addYearCol(df_2016,2016)
+df_2015 = pd.read_csv("rap_df_2015.csv")
+addYearCol(df_2015,2015)
+df_2014 = pd.read_csv("rap_df_2014.csv")
+addYearCol(df_2014,2014)
+df_2013 = pd.read_csv("rap_df_2013.csv")
+addYearCol(df_2013,2013)
+df_2012 = pd.read_csv("rap_df_2012.csv")
+addYearCol(df_2012,2012)
 
-frames = [df_2019,df_2018,df_2017]
+frames = [df_2019,df_2018,df_2017,df_2016,df_2015,df_2014,df_2013,df_2012]
 merged_df = pd.concat(frames)
+
 
 num_unique_artists = len(set(merged_df['artist'].tolist()))
 
 
-list_of_wordfreq = []
+list_of_words = []
+avgSentiment = []
 for num_rows in range(merged_df.shape[0]):
+    print('Percent Done: {}'.format((num_rows/merged_df.shape[0])*100))
     artist = merged_df.iloc[num_rows,0]
     track = merged_df.iloc[num_rows,2]
     try:
-        lines,word_freq = tokenizeLyrics(genius,artist,track)
-        list_of_wordfreq.append(word_freq)
+        lines,word_list = preProcessData(genius,artist,track,stop_words)
+#        if detect(lines[0]) != 'en':
+#            list_of_words.append(None)
+#            avgSentiment.append(None)
+#        else:
+        list_of_words.append(word_list)
         #df_2019.replace(num_rows,-1) = word_freq
-        comp_list = sentimentAnalysis(lines,artist,track)
+        #a,p,neu,n = sentimentAnalysis(lines,artist,track)
+        #avgSentiment.append(a)
     except:
         print('Sorry, Song Lyrics not Found')
-        list_of_wordfreq.append(None)
+        list_of_words.append(None)
+        #avgSentiment.append(None)
         #df_2019.loc[num_rows,'Word Frequency'] = None
-merged_df['Word Frequency'] = list_of_wordfreq
-merged_df.to_csv("merged_df.csv",index = False)
-sortedTotalFreq = calculateTotalFreq(merged_df)
+merged_df['Words'] = list_of_words
+#merged_df['Avg Sentiment'] = avgSentiment
+merged_df.to_csv("final_merged_df.csv",index = False)

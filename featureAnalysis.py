@@ -23,7 +23,19 @@ import matplotlib.pyplot as plt
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import seaborn as sns
+from nltk.stem import WordNetLemmatizer 
+  
+lemmatizer = WordNetLemmatizer() 
 
+def calculateTotalFreq(df):
+    """
+
+    
+    """
+    totalFrq = np.sum([Counter(df.iloc[i,-1]) for i in range(df.shape[0]) if df.iloc[i,-1] != None ])
+    #totalFrq.most_common(10)
+    sortedTotalFreq = sorted(totalFrq.items(), key=lambda pair: pair[1], reverse=True)
+    return sortedTotalFreq
 
 def calulateStrongestFeatureCorrelations(df):
     c= df.corr().abs()
@@ -31,7 +43,7 @@ def calulateStrongestFeatureCorrelations(df):
     so = s.sort_values(kind = 'quicksort')
     print(so.tolist()[-20])
 
-merged_df = pd.read_csv("merged_df.csv")
+merged_df = pd.read_csv("final_merged_df.csv")
 #merged_df = pd.read_csv(merged_df)
 df_above_50 = merged_df[merged_df.popularity > 50]
 
@@ -49,4 +61,6 @@ plt.scatter(artist_grouped_df['valence'],artist_grouped_df['popularity'])
 for i,text in enumerate(list_artists):
     plt.annotate(text,(artist_grouped_df['valence'][i],artist_grouped_df['popularity'][i]))
     
+sortedTotalFreq = calculateTotalFreq(merged_df)
+
 #artis = merged_df.groupby(['artist']).sum()
