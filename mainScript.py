@@ -8,7 +8,7 @@ mainScitpy.py
 Data Proprocessing...
 """
 
-
+### IMPORTS ###
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -27,47 +27,44 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
 from num2words import num2words
 from langdetect import detect 
+from nltk.stem import WordNetLemmatizer 
+import itertools
+import pickle
 
-
-#from spotify_api import tokenizeLyrics,sentimentAnalysis
 stop_words = stopwords.words()
 ps = PorterStemmer()
+lemmatizer = WordNetLemmatizer()
+
+
+### FUNCTIONS ###
 def preProcessData(genius,artist_name,track_name,stop_words):
+    """
+    
+    
+    """
     symbols = "!,\"#$%&()*+-./:;<=>?@[\]^_`{|}~"#\n"
     lyrics_string = genius.search_song(track_name,artist_name).lyrics
     lyrics = re.sub(r'[\(\[].*?[\)\]]', '', lyrics_string)
     lyrics = lyrics.lower()
-    #return lyrics
     words = lyrics.split (' ')
     newtst = ''
     for word in words:
         if word not in stop_words:
             newtst = newtst+ " "+  word
-    #return newtst
     for i in symbols:
         newtst = newtst.replace(i,'')
     newtst.replace("'","")
-    #return newtst
     lines = newtst.split('\n')
-    #return lines
     words = newtst.replace('\n',' ').split(' ')
-    #return words
-    #wordz = newtst.split(" ")
-    #return wordz
-    #final_lyrics = ''
     for word in words:
         if len(word) <= 1:
             words.remove(word)
     for line in lines:
         if len(line) <= 1:
             lines.remove(line)
-    return lines,words
-    #return final_lyrics
-#    line_split = final_lyrics.split('\n')
-    #return line_split
-    #words = word_tokenize(line_split)
-    #stem_words = [ps.stem(w) for w in words]
-    #r#eturn words,stem_words
+    lem_words = [lemmatizer.lemmatize(w) for w in words]
+    return lines,lem_words
+
 def tokenizeLyrics(genius,artist_name,track_name):
     """
     Tokenize Lyrics of song
@@ -93,7 +90,7 @@ def tokenizeLyrics(genius,artist_name,track_name):
     print(tokens_without_sw)
     word_frequency = Counter(tokens_without_sw)
     return linesplit_lyrics,word_frequency
-def sentimentAnalysis(line_split_lyrics,artist,song):
+def sentimentAnalysis(line_split_lyrics):
     """"
     Analysis sentiment of single song, calculting
     the compound polarity score of each line.
@@ -115,23 +112,13 @@ def sentimentAnalysis(line_split_lyrics,artist,song):
     for line in line_split_lyrics:
         numberOfLines += 1
         ss = sid.polarity_scores(line)
-        if ss > 0:
+        if ss['compound'] > 0:
             numberPosLines += 1
-        elif ss == 0:
+        elif ss['compound'] == 0:
             numberNeuLines +=1
-        elif ss < 0:
+        elif ss['compound'] < 0:
             numberNegLines += 1 
         comp_list.append(ss['compound'])
-        #pos_list.append(ss[])
-        #for k in sorted(ss):
-         #print('{0}: {1}, '.format(k, ss[k]), end='')
-         #print()
-         #
-#    plt.plot(comp_list)
-#    plt.xlabel('Line Number')
-#    plt.ylabel('Compound Polarity Score')
-#    plt.title('{} by {}'.format(artist,song))
-#    plt.show()
     avgSentiment = np.average(comp_list)
     proportionPositive = numberPosLines/numberOfLines
     proportionNeutral = numberNeuLines/numberOfLines
@@ -198,27 +185,53 @@ merged_df = pd.concat(frames)
 num_unique_artists = len(set(merged_df['artist'].tolist()))
 
 
-list_of_words = []
+list_number_words = []
+list_number_unique_words = []
+running_word_list = []
 avgSentiment = []
+propPos = []
+propNeu = []
+propNeg = []
+
 for num_rows in range(merged_df.shape[0]):
     print('Percent Done: {}'.format((num_rows/merged_df.shape[0])*100))
     artist = merged_df.iloc[num_rows,0]
     track = merged_df.iloc[num_rows,2]
     try:
-        lines,word_list = preProcessData(genius,artist,track,stop_words)
-#        if detect(lines[0]) != 'en':
-#            list_of_words.append(None)
-#            avgSentiment.append(None)
-#        else:
-        list_of_words.append(word_list)
-        #df_2019.replace(num_rows,-1) = word_freq
-        #a,p,neu,n = sentimentAnalysis(lines,artist,track)
-        #avgSentiment.append(a)
+        lines,lem_word_list = preProcessData(genius,artist,track,stop_words)
+        avg,pos,neu,neg = sentimentAnalysis(lines)
+        
+        running_word_list.append(lem_word_list)
+
+
+        number_words = len(lem_word_list)
+        number_unique_words = len(set(lem_word_list))
+        
+        list_number_words.append(number_words)
+        list_number_unique_words.append(number_unique_words)
+        avgSentiment.append(avg)
+        propPos.append(pos)
+        propNeu.append(neu)
+        propNeg.append(neg)
     except:
         print('Sorry, Song Lyrics not Found')
-        list_of_words.append(None)
-        #avgSentiment.append(None)
-        #df_2019.loc[num_rows,'Word Frequency'] = None
-merged_df['Words'] = list_of_words
-#merged_df['Avg Sentiment'] = avgSentiment
-merged_df.to_csv("final_merged_df.csv",index = False)
+        list_number_words.append(None)
+        list_number_unique_words.append(None)
+        avgSentiment.append(None)
+        propPos.append(None)
+        propNeu.append(None)
+        propNeg.append(None)
+        
+merged_df['Word Count'] = list_number_words
+merged_df['Unique Word Count'] = list_number_unique_words
+merged_df['Avg Sentiment'] = avgSentiment
+merged_df['Prop Lines Pos'] = propPos
+merged_df['Prop Lines Neu'] = propNeu
+merged_df['Prop Lines Neg'] = propNeg
+merged_df = merged_df.dropna()
+merged_df.to_csv("rap_2013-2020.csv",index = False)
+
+
+with open('word_list.pkl','wb') as f:
+    pickle.dump(running_word_list,f)
+    

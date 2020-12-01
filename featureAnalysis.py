@@ -24,7 +24,9 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import seaborn as sns
 from nltk.stem import WordNetLemmatizer 
-  
+import pickle
+import itertools
+
 lemmatizer = WordNetLemmatizer() 
 
 def calculateTotalFreq(df):
@@ -42,6 +44,40 @@ def calulateStrongestFeatureCorrelations(df):
     s = c.unstack()
     so = s.sort_values(kind = 'quicksort')
     print(so.tolist()[-20])
+    
+    
+with open('word_list.pkl','rb') as f:
+    running_word_list = pickle.load(f)
+    
+    
+    
+counter_all_words = Counter(list(itertools.chain.from_iterable(running_word_list)))
+sorted_word_freq = sorted(counter_all_words.items(), key=lambda pair: pair[1], reverse=True)
+for i in range(100):
+    print("Rank: {} Word: {} Frequency: {}".format(i+1,sorted_word_freq[i][0],sorted_word_freq[i][1]))
+    
+    
+    
+
+frequency = sorted(list(counter_all_words.values()),reverse=True)
+rank = list(range(1,len(frequency)+1))        
+rank = np.log10(rank)
+frequency = np.log10(frequency)
+slope,intercept = np.polyfit(rank,frequency,1)
+fig,ax = plt.subplots()
+ax.plot(rank,slope*rank+intercept,color = 'red',label='Regression Slope = {}'.format(slope))
+ax.scatter(rank,frequency,label = 'Original Word Data')
+plt.xlabel(r"$\log_{10}(Rank$)",fontsize = 16)
+plt.ylabel(r"$\log_{10}$(Frequency)",fontsize = 16)
+#plt.title(r"ZIPF $\rho = {:.3f}$ (log-log space)".format(rho),fontsize = 16) #$\alpha$ = {:.2f}".format(slope),fontsize = 16)
+plt.tight_layout()
+plt.legend()
+#plt.savefig(os.getcwd() + '/ZIPF_{}.png'.format(rho), dpi=900)
+plt.show()
+
+    
+
+
 
 merged_df = pd.read_csv("final_merged_df.csv")
 #merged_df = pd.read_csv(merged_df)
