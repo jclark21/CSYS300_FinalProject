@@ -186,7 +186,7 @@ num_unique_artists = len(set(merged_df['artist'].tolist()))
 
 
 list_number_words = []
-list_number_unique_words = []
+list_prop_unique_words = []
 running_word_list = []
 avgSentiment = []
 propPos = []
@@ -206,9 +206,10 @@ for num_rows in range(merged_df.shape[0]):
 
         number_words = len(lem_word_list)
         number_unique_words = len(set(lem_word_list))
+        prop_unique_words = number_unique_words/number_words
         
         list_number_words.append(number_words)
-        list_number_unique_words.append(number_unique_words)
+        list_prop_unique_words.append(prop_unique_words)
         avgSentiment.append(avg)
         propPos.append(pos)
         propNeu.append(neu)
@@ -216,14 +217,14 @@ for num_rows in range(merged_df.shape[0]):
     except:
         print('Sorry, Song Lyrics not Found')
         list_number_words.append(None)
-        list_number_unique_words.append(None)
+        list_prop_unique_words.append(None)
         avgSentiment.append(None)
         propPos.append(None)
         propNeu.append(None)
         propNeg.append(None)
         
 merged_df['Word Count'] = list_number_words
-merged_df['Unique Word Count'] = list_number_unique_words
+merged_df['Prop Unique Words'] = list_prop_unique_words
 merged_df['Avg Sentiment'] = avgSentiment
 merged_df['Prop Lines Pos'] = propPos
 merged_df['Prop Lines Neu'] = propNeu
